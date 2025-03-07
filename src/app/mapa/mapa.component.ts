@@ -61,7 +61,7 @@ export class MapaComponent {
   fetchPropertyData(carCode: string) {
     const apiUrl = [
       environment.api,
-      `poligono/imovel?codImovel=${carCode}&imovel=true`
+      `poligono/imovel?codImovel=${carCode}&imovel=true&app=true&consolidada=true&hidrografia=true&pousio=true&reserva=true&restrito=true&servidao=true&vegetacao=true&desmatamento=true&focoQueimada=true`
     ].join('/');
 
     this.http.get(apiUrl).subscribe((data: any) => {
