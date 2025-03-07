@@ -1,15 +1,112 @@
 :host {
     display: block;
-    height: 100%; // Ocupa 100% da altura do contêiner pai (.content)
+    height: 100%;
     width: 100%;
 }
 
 google-map {
     display: block;
-    height: 100%; // Ocupa toda a altura disponível
+    height: 100%;
     width: 100%;
 }
 
 #map-container {
     height: 100% !important;
+    position: relative;
+    z-index: 1;
+
+    .toggle-btn {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        z-index: 1000;
+        display: none; // Escondido por padrão (desktop)
+
+        &:hover {
+            background: #0056b3;
+        }
+    }
+}
+
+.geometry-filters {
+    position: absolute;
+    bottom: 10px; // Alinha ao fundo
+    left: 10px; // Mantém à esquerda
+    width: 200px;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    transition: transform 0.3s ease;
+
+    .filter-header {
+        h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+    }
+
+    .filter-content {
+        margin-top: 10px;
+
+        label {
+            display: block;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+    }
+}
+
+/* Desktop: filtros fixos, botão escondido */
+@media (min-width: 769px) {
+    .geometry-filters {
+        transform: translateX(0); // Sempre visível
+    }
+}
+
+/* Mobile: botão visível, filtros escondidos por padrão */
+@media (max-width: 768px) {
+    #map-container {
+        .toggle-btn {
+            display: block; // Mostra o botão em mobile
+        }
+    }
+
+    .geometry-filters {
+        transform: translateX(-100%); // Escondido por padrão
+        height: auto;
+
+        &.open {
+            transform: translateX(0); // Aparece ao clicar no botão
+        }
+
+        .filter-content {
+            max-height: 50vh; // Reduzido para caber na parte inferior
+            overflow-y: auto;
+        }
+    }
+}
+
+/* Telas menores */
+@media (max-width: 480px) {
+    .geometry-filters {
+        width: 150px;
+
+        .filter-content label {
+            font-size: 12px;
+        }
+    }
+
+    #map-container .toggle-btn {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
 }

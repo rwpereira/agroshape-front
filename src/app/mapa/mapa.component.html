@@ -1,2 +1,24 @@
-<google-map height="100%" width="100%" [options]="mapOptions" (mapDblclick)="onMapDblClick($event)">
-</google-map>
+<div id="map-container">
+    <google-map height="100%" width="100%" [options]="mapOptions" (mapDblclick)="onMapDblClick($event)">
+    </google-map>
+    <!-- Botão de toggle fora do geometry-filters -->
+    <button class="toggle-btn" (click)="toggleFilters()">
+        {{ isFilterOpen ? 'Fechar' : 'Filtros' }}
+    </button>
+</div>
+
+<!-- Filtros como um menu separado -->
+<div class="geometry-filters" [class.open]="isFilterOpen">
+    <div class="filter-header">
+        <h3>Filtros de Geometria</h3>
+    </div>
+    <div class="filter-content">
+        <div *ngFor="let type of geometryTypes">
+            <label>
+                <input type="checkbox" [checked]="type.enabled"
+                    (change)="type.enabled = !type.enabled; onCheckboxChange()">
+                {{ type.name }}
+            </label>
+        </div>
+    </div>
+</div>
