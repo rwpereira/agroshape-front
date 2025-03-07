@@ -1,0 +1,15 @@
+:host {
+    display: block;
+    height: 100%; // Ocupa 100% da altura do contêiner pai (.content)
+    width: 100%;
+}
+
+google-map {
+    display: block;
+    height: 100%; // Ocupa toda a altura disponível
+    width: 100%;
+}
+
+#map-container {
+    height: 100% !important;
+}

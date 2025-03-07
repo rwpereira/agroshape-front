@@ -1,0 +1,26 @@
+:host {
+    display: block;
+    height: 100%; // Garante que o componente raiz ocupe toda a tela
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%; // Herda a altura total do :host
+    width: 100%;
+}
+
+nav {
+    background-color: #f8f8f8; // Estilo opcional
+    padding: 10px;
+}
+
+.content {
+    flex: 1; // Faz o conteúdo crescer para ocupar o espaço restante
+    display: flex;
+    flex-direction: column;
+}
+
+#map-container {
+    height: 100% !important;
+}
