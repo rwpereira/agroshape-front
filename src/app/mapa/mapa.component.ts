@@ -200,21 +200,20 @@ export class MapaComponent {
   showPolygonDetails(item: any) {
     const htmlContent = `
     <div style="text-align: left;">
-      <p>Código do Imóvel: <strong>${item.codImovel}</strong></p>
-      <p><strong>Tipo de Geometria:</strong> ${item.tipoGeometria}</p>
-      <p><strong>Município:</strong> ${item.municipio}</p>
-      <p><strong>Tema:</strong> ${item.nom_tema || 'N/A'}</p>
-      <p><strong>Biomas:</strong> ${item.biomas}</p>
+      <p>CAR: <strong>${item.codImovel}</strong></p>
+      <p>Tipo de Geometria: <strong>${item.tipoGeometria}</strong></p>
+      <p>Município: <strong>${item.municipio}</strong></p>
+      <p>Tema: <strong>${item.nom_tema || 'N/A'}</strong></p>
+      <p>Biomas: <strong>${item.biomas}</strong></p>
     </div>
   `;
 
     Swal.fire({
       title: item.descricao || 'Detalhes do Polígono',
       html: htmlContent,
-      icon: 'info',
       confirmButtonText: 'Fechar',
       confirmButtonColor: '#007bff',
-      width: '400px'
+      width: '600px'
     });
   }
 
