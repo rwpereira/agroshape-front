@@ -24,21 +24,26 @@ export class MapaComponent {
   };
 
   polygons: google.maps.Polygon[] = [];
-  mapData: any[] = []; // Armazena os dados brutos para filtragem
+  mapData: any[] = [];
   geometryTypes: { name: string; enabled: boolean }[] = [
     { name: 'Imóvel', enabled: true },
     { name: 'Vegetação nativa', enabled: true },
     { name: 'Área de Preservação Permanente', enabled: true },
+    { name: 'Pousio', enabled: true },
     { name: 'Área consolidada', enabled: true },
+    { name: 'Hidrografia', enabled: true },
+    { name: 'Uso restrito', enabled: true },
+    { name: 'Servidão administrativa', enabled: true },
     { name: 'Reserva legal', enabled: true },
+    { name: 'Desmatamento', enabled: true },
+    { name: 'Bioma', enabled: true },
     { name: 'Focos de queimada', enabled: true }
   ];
-  isFilterOpen: boolean = false; // Controla o estado do menu de filtros
+  isFilterOpen: boolean = false;
+  selectedPolygon: any = null; // Armazena os dados do polígono clicado
 
   constructor(private http: HttpClient) { }
 
-
-  // Função para abrir/fechar os filtros
   toggleFilters() {
     this.isFilterOpen = !this.isFilterOpen;
   }
@@ -49,16 +54,14 @@ export class MapaComponent {
       const lng = event.latLng.lng();
       console.log(`Latitude: ${lat}, Longitude: ${lng}`);
 
-      // Exibe o loading
-      // Swal.fire({
-      //   title: 'Carregando...',
-      //   text: 'Buscando dados do imóvel',
-      //   allowOutsideClick: false,
-      //   didOpen: () => {
-      //     Swal.showLoading(); // Mostra o ícone de loading
-      //   }
-      // });
-
+      Swal.fire({
+        title: 'Carregando...',
+        text: 'Buscando dados do imóvel',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
 
       this.fetchCarCode(lat, lng);
     }
@@ -66,57 +69,61 @@ export class MapaComponent {
 
   fetchCarCode(lat: number, lng: number) {
     const apiUrl = [environment.api, `consulta/busca-car?latitude=${lat}&longitude=${lng}`].join('/');
-    this.http.get<any[]>(apiUrl).subscribe((data) => {
-      console.log('Dados do busca-car:', data);
-      if (data && data.length > 0 && data[0].cod_imovel) {
-        const carCode = data[0].cod_imovel;
-        console.log(`Código do imóvel encontrado: ${carCode}`);
-        this.fetchPropertyData(carCode);
-
-      } else {
+    this.http.get<any[]>(apiUrl).subscribe(
+      (data) => {
+        console.log('Dados do busca-car:', data);
+        if (data && data.length > 0 && data[0].cod_imovel) {
+          const carCode = data[0].cod_imovel;
+          console.log(`Código do imóvel encontrado: ${carCode}`);
+          this.fetchPropertyData(carCode);
+        } else {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Nenhum imóvel encontrado',
+            text: 'Não foi encontrado um código de imóvel na área clicada.',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#007bff'
+          });
+          console.log('Nenhum código de imóvel encontrado.');
+        }
+      },
+      (error) => {
         Swal.fire({
-          icon: 'warning',
-          title: 'Nenhum imóvel encontrado',
-          text: 'Não foi encontrado um código de imóvel na área clicada.',
+          icon: 'error',
+          title: 'Erro',
+          text: 'Ocorreu um erro ao buscar o imóvel. Tente novamente.',
           confirmButtonText: 'OK',
           confirmButtonColor: '#007bff'
         });
-        console.log('Nenhum código de imóvel encontrado.');
+        console.error('Erro ao consultar busca-car:', error);
       }
-    }, (error) => {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Ocorreu um erro ao buscar o imóvel. Tente novamente.',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#007bff'
-      });
-      console.error('Erro ao consultar busca-car:', error);
-    });
+    );
   }
 
   fetchPropertyData(carCode: string) {
     const apiUrl = [
       environment.api,
-      `poligono/imovel?codImovel=${carCode}&imovel=true&app=true&consolidada=true&hidrografia=true&pousio=true&reserva=true&restrito=true&servidao=true&vegetacao=true&desmatamento=true&focoQueimada=true`
+      `poligono/imovel?codImovel=${carCode}&imovel=true&app=true&consolidada=true&hidrografia=true&pousio=true&reserva=true&restrito=true&servidao=true&vegetacao=true&bioma=true&desmatamento=true&bioma=true&focoQueimada=true`
     ].join('/');
 
-    this.http.get<any[]>(apiUrl).subscribe((data) => {
-      this.clearMap();
-      // console.log('Dados da API poligono/imovel:', data);
-      this.mapData = data; // Armazena os dados brutos
-      this.updateMap(); // Atualiza o mapa com base nos filtros
-      // Swal.close();
-    }, (error) => {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Ocorreu um erro ao carregar os dados do imóvel.',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#007bff'
-      });
-      console.error('Erro ao consultar poligono/imovel:', error);
-    });
+    this.http.get<any[]>(apiUrl).subscribe(
+      (data) => {
+        this.clearMap();
+        console.log('Dados da API poligono/imovel:', data);
+        this.mapData = data;
+        this.updateMap();
+      },
+      (error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'Ocorreu um erro ao carregar os dados do imóvel.',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#007bff'
+        });
+        console.error('Erro ao consultar poligono/imovel:', error);
+      }
+    );
   }
 
   clearMap() {
@@ -124,49 +131,43 @@ export class MapaComponent {
     this.polygons = [];
   }
 
-  // Atualiza o mapa com base nos tipos de geometria habilitados
   updateMap() {
     this.clearMap();
     const filteredData = this.mapData.filter(item =>
       this.geometryTypes.some(type => type.name === item.tipoGeometria && type.enabled)
     );
-    // console.log('filteredData:', filteredData);
     this.displayGeoJsonArray(filteredData);
   }
 
-  // Processa o array de objetos com geojson e ajusta o mapa
   displayGeoJsonArray(data: any[]) {
     const bounds = new google.maps.LatLngBounds();
 
-    data.forEach(item => {
+    data.forEach((item, index) => {
       const geojson = item.geojson;
       const color = this.normalizeColor(item.cor_normal);
 
       if (geojson.type === 'Polygon') {
-        this.addPolygon(geojson.coordinates, color, bounds);
+        this.addPolygon(geojson.coordinates, color, bounds, item, index);
       } else if (geojson.type === 'MultiPolygon') {
         geojson.coordinates.forEach((polygonCoords: any[]) => {
-          this.addPolygon(polygonCoords, color, bounds);
+          this.addPolygon(polygonCoords, color, bounds, item, index);
         });
       }
     });
 
     if (this.polygons.length > 0 && this.map.googleMap) {
-      this.map.googleMap.fitBounds(bounds);
-      // Aguarda o mapa ajustar os bounds antes de fechar o loading
-      google.maps.event.addListenerOnce(this.map.googleMap, 'bounds_changed', () => {
-        Swal.close(); // Fecha o loading após o zoom ser aplicado
-      });
+      // Fecha o loading primeiro
+      Swal.close();
+      // Aplica o fitBounds após o loading estar fechado
+      setTimeout(() => {
+        this.map?.googleMap?.fitBounds(bounds);
+      }, 1000); // Pequeno atraso para garantir que o mapa esteja pronto
     } else {
-      Swal.close(); // Fecha o loading se não houver polígonos
-    }
-
-    if (this.polygons.length > 0 && this.map.googleMap) {
-      this.map.googleMap.fitBounds(bounds);
+      Swal.close(); // Fecha imediatamente se não houver polígonos
     }
   }
 
-  addPolygon(coordinates: any[], color: string, bounds: google.maps.LatLngBounds) {
+  addPolygon(coordinates: any[], color: string, bounds: google.maps.LatLngBounds, item: any, index: number) {
     const paths = coordinates.map((ring: any[]) =>
       ring.map((coord: number[]) => ({ lat: coord[0], lng: coord[1] }))
     );
@@ -188,6 +189,37 @@ export class MapaComponent {
         bounds.extend(coord);
       });
     });
+
+    // Adiciona evento de clique ao polígono
+    google.maps.event.addListener(polygon, 'click', () => {
+      this.showPolygonDetails(item);
+    });
+  }
+
+  // Exibe os detalhes do polígono em um modal
+  showPolygonDetails(item: any) {
+    const htmlContent = `
+    <div style="text-align: left;">
+      <p>Código do Imóvel: <strong>${item.codImovel}</strong></p>
+      <p><strong>Tipo de Geometria:</strong> ${item.tipoGeometria}</p>
+      <p><strong>Município:</strong> ${item.municipio}</p>
+      <p><strong>Tema:</strong> ${item.nom_tema || 'N/A'}</p>
+      <p><strong>Biomas:</strong> ${item.biomas}</p>
+    </div>
+  `;
+
+    Swal.fire({
+      title: item.descricao || 'Detalhes do Polígono',
+      html: htmlContent,
+      icon: 'info',
+      confirmButtonText: 'Fechar',
+      confirmButtonColor: '#007bff',
+      width: '400px'
+    });
+  }
+
+  closeModal() {
+    this.selectedPolygon = null; // Fecha o modal limpando os dados
   }
 
   normalizeColor(color: string): string {
@@ -197,7 +229,6 @@ export class MapaComponent {
     return color;
   }
 
-  // Função chamada ao mudar o estado de um checkbox
   onCheckboxChange() {
     this.updateMap();
   }
